@@ -8,7 +8,9 @@ import os
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "db.sqlite")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
+    basedir, "db.sqlite"
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # Initialize DB
 db = SQLAlchemy(app)
@@ -36,7 +38,7 @@ class Client(db.Model):
     name = db.Column(db.String(100), unique=True)
     points = db.Column(db.Float)
 
-    def __init__(self, name, points):
+    def __init__(self, id, name, points):
         self.name = name
         self.points = points
 
@@ -113,9 +115,25 @@ def delete_product(id):
     return product_schema.jsonify(product)
 
 
+# Create a client
+@app.route("/clients", methods=["POST"])
+def add_client():
+    name = request.json["name"]
+    points = request.json["points"]
+
+    new_client = Client(id, name, points)
+
+    db.session.add(new_client)
+    db.session.commit()
+
+    return client_schema.jsonify(new_client)
+
+
 # Initialize Schema
 product_schema = ProductSchema()
 products_schema = ProductSchema(many=True)
+client_schema = ClientSchema()
+clients_schema = ClientSchema(many=True)
 
 # NOTE: To initiliaze the db we have to open a python terminal the we write
 #  "from app import db" the we usen the function "db.create_all()"
